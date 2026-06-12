@@ -17,6 +17,13 @@ def recv_exact(conn, size):
         data += packet
     return data
 
+def recv_packet(conn):
+    header = recv_exact(conn, 4)
+    if header is None:
+        return None
+    (size,) = struct.unpack("!I", header)
+    return recv_exact(conn, size)
+    
 def handle_client(conn, addr):
     print("Co ket noi tu:", addr)
     

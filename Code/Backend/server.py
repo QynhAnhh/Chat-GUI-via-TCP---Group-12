@@ -23,6 +23,15 @@ def recv_packet(conn):
         return None
     (size,) = struct.unpack("!I", header)
     return recv_exact(conn, size)
+
+def broadcast(payload_bytes, exclude_addr=None):
+    header = struct.pack("!I", len(payload_bytes))
+    for c, s in list(clients.items()):
+        if c != exclude_addr:
+            try:
+                s.sendall(header + payload_bytes)
+            except Exception:
+                pass
     
 def handle_client(conn, addr):
     print("Co ket noi tu:", addr)
@@ -60,6 +69,11 @@ def handle_client(conn, addr):
                 elif data_json.get("type") == "chat_all":
                     print(f"[{data_json.get('sender')}] chat: {data_json.get('content')}")
                     # TODO: Tuan sau viet vong lap gui tin nhan cho moi nguoi
+                
+                    broadcast(payload, exclude_addr=addr)
+ 
+                elif data_json.get("type") in ("reply", "forward", "emoji"):
+                    broadcast(payload, exclude_addr=addr)
                     
             except UnicodeDecodeError:
                 # Dich loi -> Do la file anh cua Tien gui

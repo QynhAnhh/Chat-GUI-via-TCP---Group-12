@@ -22,6 +22,7 @@ def recv_exact(conn, size):
 
 def handle_client(conn, addr):
     print("Co ket noi tu:", addr)
+    current_nickname = None
     
     while True:
         try:
@@ -39,6 +40,7 @@ def handle_client(conn, addr):
                 text = payload.decode('utf-8')
                 print(f"[SERVER DEBUG] Nhận được payload: {text}")
                 data_json = json.loads(text)
+                msg_type = data_json.get("type")
                 
                 # LOGIN & QUẢN LÝ CLIENT ID
                 if msg_type == "login":

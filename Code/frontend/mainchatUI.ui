@@ -219,7 +219,7 @@ QLineEdit:focus {
 }</string>
           </property>
           <property name="placeholderText">
-           <string>Tìm kiếm</string>
+           <string>Tìm kiếm người dùng hoặc nhóm</string>
           </property>
          </widget>
         </item>
@@ -652,34 +652,18 @@ QPushButton#btn_send:hover {
          <number>0</number>
         </property>
         <widget class="QWidget" name="page_info">
-         <widget class="QLabel" name="lbl_info_avatar">
+         <widget class="QWidget" name="horizontalLayoutWidget_2">
           <property name="geometry">
            <rect>
-            <x>140</x>
-            <y>80</y>
-            <width>49</width>
-            <height>16</height>
+            <x>30</x>
+            <y>20</y>
+            <width>290</width>
+            <height>41</height>
            </rect>
           </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-         </widget>
-         <widget class="QWidget" name="horizontalLayoutWidget">
-          <property name="geometry">
-           <rect>
-            <x>50</x>
-            <y>150</y>
-            <width>202</width>
-            <height>91</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
-            <spacer name="horizontalSpacer">
+            <spacer name="horizontalSpacer_5">
              <property name="orientation">
               <enum>Qt::Orientation::Horizontal</enum>
              </property>
@@ -692,15 +676,134 @@ QPushButton#btn_send:hover {
             </spacer>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_5">
+            <widget class="QLabel" name="lbl_col4_title">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Thông tin hội thoại</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QLabel" name="lbl_info_avatar">
+          <property name="geometry">
+           <rect>
+            <x>125</x>
+            <y>70</y>
+            <width>100</width>
+            <height>100</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+         <widget class="QWidget" name="horizontalLayoutWidget_3">
+          <property name="geometry">
+           <rect>
+            <x>40</x>
+            <y>180</y>
+            <width>261</width>
+            <height>40</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbl_info_name">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Tên người dùng/Tên nhóm</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="horizontalLayoutWidget">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>230</y>
+            <width>330</width>
+            <height>110</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>10</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_10">
              <item alignment="Qt::AlignmentFlag::AlignHCenter">
-              <widget class="QPushButton" name="btn_info_mute">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+              <widget class="QPushButton" name="btn_info_block">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -715,7 +818,7 @@ QPushButton#btn_send:hover {
                </property>
                <property name="styleSheet">
                 <string notr="true">QPushButton {
-    border-radius: 20px; 
+    border-radius: 20px;
     background-color: #2C323A;
 }
 QPushButton:hover {
@@ -727,7 +830,7 @@ QPushButton:hover {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>images/notification.svg</normaloff>images/notification.svg</iconset>
+                 <normaloff>images/block.svg</normaloff>images/block.svg</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -738,15 +841,9 @@ QPushButton:hover {
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_2">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+              <widget class="QLabel" name="lbl_btn_block">
                <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Tắt thông&lt;br/&gt;báo&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Hủy kết&lt;br/&gt;bạn&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -756,7 +853,111 @@ QPushButton:hover {
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_10">
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <item alignment="Qt::AlignmentFlag::AlignHCenter">
+              <widget class="QPushButton" name="btn_info_action">
+               <property name="minimumSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+    border-radius: 20px;
+    background-color: #2C323A;
+}
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>images/usergr.svg</normaloff>images/usergr.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>24</width>
+                 <height>24</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbl_btn_action">
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Tạo nhóm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_11">
+             <item alignment="Qt::AlignmentFlag::AlignHCenter">
+              <widget class="QPushButton" name="btn_info_members">
+               <property name="minimumSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+    border-radius: 20px;
+    background-color: #2C323A;
+}
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>images/listfricon.svg</normaloff>images/listfricon.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>24</width>
+                 <height>24</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbl_btn_members">
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Thành viên&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_add_member">
              <item alignment="Qt::AlignmentFlag::AlignHCenter">
               <widget class="QPushButton" name="btn_info_add_member">
                <property name="minimumSize">
@@ -773,7 +974,7 @@ QPushButton:hover {
                </property>
                <property name="styleSheet">
                 <string notr="true">QPushButton {
-    border-radius: 20px; 
+    border-radius: 20px;
     background-color: #2C323A;
 }
 QPushButton:hover {
@@ -808,9 +1009,9 @@ QPushButton:hover {
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
+            <layout class="QVBoxLayout" name="verticalLayout_join_requests">
              <item alignment="Qt::AlignmentFlag::AlignHCenter">
-              <widget class="QPushButton" name="pushButton">
+              <widget class="QPushButton" name="btn_info_requests">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -825,7 +1026,7 @@ QPushButton:hover {
                </property>
                <property name="styleSheet">
                 <string notr="true">QPushButton {
-    border-radius: 20px; 
+    border-radius: 20px;
     background-color: #2C323A;
 }
 QPushButton:hover {
@@ -837,7 +1038,7 @@ QPushButton:hover {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>images/usergr.svg</normaloff>images/usergr.svg</iconset>
+                 <normaloff>images/request.svg</normaloff>images/request.svg</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -848,9 +1049,12 @@ QPushButton:hover {
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_3">
+              <widget class="QLabel" name="lbl_btn_requests">
                <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tạo nhóm&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Duyệt yêu &lt;br/&gt;cầu&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -863,307 +1067,11 @@ QPushButton:hover {
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>10</width>
                <height>20</height>
               </size>
              </property>
             </spacer>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="horizontalLayoutWidget_2">
-          <property name="geometry">
-           <rect>
-            <x>80</x>
-            <y>20</y>
-            <width>181</width>
-            <height>41</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
-           <item>
-            <spacer name="horizontalSpacer_5">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QLabel" name="label">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Thông tin hội thoại</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_5">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Thông tin nhóm</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_6">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="horizontalLayoutWidget_3">
-          <property name="geometry">
-           <rect>
-            <x>40</x>
-            <y>100</y>
-            <width>251</width>
-            <height>51</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_8">
-           <item>
-            <spacer name="horizontalSpacer_7">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QLabel" name="lbl_info_name">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Tên người dùng/Tên nhóm</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_2">
-             <property name="minimumSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QPushButton {
-    border-radius: 15px; 
-    background-color: #2C323A;
-}
-QPushButton:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="icon">
-              <iconset>
-               <normaloff>images/pen.svg</normaloff>images/pen.svg</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="verticalLayoutWidget_2">
-          <property name="geometry">
-           <rect>
-            <x>-10</x>
-            <y>300</y>
-            <width>352</width>
-            <height>227</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_12">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <item>
-            <widget class="QPushButton" name="pushButton_3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>350</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>350</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>PushButton</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_4">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>350</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>350</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>PushButton</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_5">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>350</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>350</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>PushButton</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_6">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>350</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>350</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>PushButton</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_7">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>350</width>
-               <height>45</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>350</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>PushButton</string>
-             </property>
-            </widget>
            </item>
           </layout>
          </widget>

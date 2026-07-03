@@ -374,12 +374,12 @@ QLineEdit:focus {
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBox_remember">
+         <widget class="QLabel" name="lbl_error_msg">
           <property name="styleSheet">
-           <string notr="true"/>
+           <string notr="true">color: #e74c3c; font-size: 13px; font-weight: bold;</string>
           </property>
           <property name="text">
-           <string>Nhớ biệt danh lần sau</string>
+           <string></string>
           </property>
          </widget>
         </item>

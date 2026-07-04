@@ -1,204 +1,196 @@
-"""
-Task 2.3 - Giải quyết TCP Sticky Packets (QUAN TRỌNG NHẤT)
-Nhóm 12 - Lê Hữu Tiến
-────────────────────────────────────────────────────────────
-VẤN ĐỀ: TCP là stream protocol, không có ranh giới gói tin.
-Khi gửi ảnh 50KB, bên nhận có thể nhận nhiều mảnh nhỏ
-hoặc lẫn lộn với gói tin khác → ảnh bị hỏng.
-
-GIẢI PHÁP: 4-byte Binary Header
-  [4 byte = kích thước ảnh][...... N byte dữ liệu ảnh ......]
-  Bên nhận đọc 4 byte → biết cần đọc thêm N byte → gom đủ.
-────────────────────────────────────────────────────────────
-"""
-
-import struct
-import socket
-import threading
-import time
-import numpy as np
 import cv2
-from typing import Optional
+import base64
+import json
+import struct
+import numpy as np
+from datetime import datetime
+from PySide6.QtWidgets import QFileDialog, QListWidgetItem
+from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtCore import Qt, QTimer, QThread, Signal
 
+class CameraThread(QThread):
+    image_encoded = Signal(bytes) # Tín hiệu mang mảng byte của ảnh
+    error_occurred = Signal(str)
 
-# ─────────────────────────────────────────────────────────────
-#  HÀM GỬI ẢNH (BÊN GỬI / CLIENT)
-# ─────────────────────────────────────────────────────────────
-
-def send_image(sock: socket.socket, img_bytes: bytes) -> bool:
-    """
-    Gửi ảnh qua TCP với 4-byte Binary Header.
-
-    Cấu trúc gói:
-        [4 byte: struct.pack("!I", len)] + [N byte: img_bytes]
-
-    Args:
-        sock      : socket đã kết nối đến Server (Quân)
-        img_bytes : Bytes ảnh từ cv2.imencode
-
-    Returns:
-        True nếu gửi thành công, False nếu lỗi.
-    """
-    try:
-        # Bước 1: Đo kích thước
-        img_size = len(img_bytes)
-
-        # Bước 2: Đóng gói kích thước vào 4 byte Header
-        header = struct.pack("!I", img_size)
-
-        # Bước 3: Nối Header + Data rồi gửi một lần (atomic)
-        payload = header + img_bytes
-        sock.sendall(payload)   # sendall đảm bảo gửi hết, không bị thiếu byte
-
-        print(f"[SEND] ✓ Gửi: header={header.hex().upper()}, "
-              f"data={img_size:,} byte, tổng={len(payload):,} byte")
-        return True
-
-    except (BrokenPipeError, ConnectionResetError, OSError) as e:
-        print(f"[SEND] ✗ Lỗi gửi: {e}")
-        return False
-
-
-# ─────────────────────────────────────────────────────────────
-#  HÀM NHẬN ẢNH (BÊN NHẬN / SERVER hoặc CLIENT)
-# ─────────────────────────────────────────────────────────────
-
-def recv_exact(sock: socket.socket, num_bytes: int) -> Optional[bytes]:
-    """
-    Vòng lặp recv() đảm bảo nhận đúng num_bytes byte.
-    Đây là hàm cốt lõi giải quyết TCP sticky packets.
-
-    Args:
-        sock      : socket kết nối
-        num_bytes : Số byte cần nhận chính xác
-
-    Returns:
-        bytes có đúng num_bytes byte, hoặc None nếu kết nối đứt.
-    """
-    data = b""
-    while len(data) < num_bytes:
-        remaining = num_bytes - len(data)
-        chunk = sock.recv(min(remaining, 4096))   # Nhận tối đa 4KB mỗi lần
-        if not chunk:
-            print("[RECV] ✗ Kết nối bị đóng giữa chừng")
-            return None
-        data += chunk
-    return data
-
-
-def receive_image(sock: socket.socket) -> Optional[np.ndarray]:
-    """
-    Nhận ảnh từ socket và decode về numpy array.
-
-    Quy trình:
-        1. Nhận đúng 4 byte Header
-        2. Giải mã Header → img_size
-        3. Vòng lặp recv() cho đến khi gom đủ img_size byte
-        4. cv2.imdecode → numpy array
-        5. Trả về cho Quỳnh Anh hiển thị trên UI
-
-    Returns:
-        numpy ndarray BGR, hoặc None nếu lỗi.
-    """
-    # Bước 1: Nhận đúng 4 byte Header
-    raw_header = recv_exact(sock, 4)
-    if raw_header is None:
-        return None
-
-    # Bước 2: Dịch ra kích thước ảnh
-    img_size = struct.unpack("!I", raw_header)[0]
-    print(f"[RECV] Header nhận: {raw_header.hex().upper()} → img_size={img_size:,} byte")
-
-    # Bước 3: Gom đủ img_size byte dữ liệu ảnh
-    img_bytes = recv_exact(sock, img_size)
-    if img_bytes is None:
-        return None
-
-    print(f"[RECV] ✓ Gom đủ {len(img_bytes):,} byte dữ liệu ảnh")
-
-    # Bước 4: Giải mã bytes → numpy array
-    buffer = np.frombuffer(img_bytes, dtype=np.uint8)
-    frame = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
-
-    if frame is None:
-        print("[RECV] ✗ imdecode thất bại — data bị corrupt?")
-        return None
-
-    h, w = frame.shape[:2]
-    print(f"[RECV] ✓ Decode thành công: {w}x{h} px → Đẩy lên UI Quỳnh Anh")
-    return frame
-
-
-# ─────────────────────────────────────────────────────────────
-#  TEST NỘI BỘ: Mô phỏng Send/Receive qua socketpair
-# ─────────────────────────────────────────────────────────────
-
-def _sender_thread(send_sock: socket.socket, frames: list):
-    """Thread giả lập Client gửi nhiều ảnh liên tiếp."""
-    for i, frame in enumerate(frames):
-        success, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
-        if success:
-            img_bytes = buf.tobytes()
-            print(f"\n[SENDER] Gửi ảnh #{i+1}: {len(img_bytes):,} byte")
-            send_image(send_sock, img_bytes)
-            time.sleep(0.05)   # Nhỏ thôi để test sticky packets
-
-    send_sock.close()
-    print("\n[SENDER] Đã gửi hết, đóng socket.")
-
-
-def run_loopback_test():
-    """
-    Test đầy đủ bằng socketpair (không cần mạng thật).
-    Mô phỏng: Client gửi 5 ảnh, Server nhận và verify.
-    """
-    print("=" * 55)
-    print(" TASK 2.3 — TCP STICKY PACKETS LOOPBACK TEST")
-    print("=" * 55)
-
-    # Tạo 5 ảnh giả kích thước khác nhau
-    frames = [
-        np.random.randint(0, 255, (480,  640, 3), dtype=np.uint8),   # ~30KB
-        np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8),   # ~80KB
-        np.random.randint(0, 255, (360,  640, 3), dtype=np.uint8),   # ~15KB
-        np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8),  # ~200KB
-        np.random.randint(0, 255, (240,  320, 3), dtype=np.uint8),   # ~7KB
-    ]
-    for i, f in enumerate(frames):
-        cv2.putText(f, f"Frame #{i+1}", (10, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
-
-    # socketpair: giả lập kênh TCP hai chiều
-    client_sock, server_sock = socket.socketpair()
-
-    # Sender chạy trong thread riêng
-    t = threading.Thread(target=_sender_thread, args=(client_sock, frames), daemon=True)
-    t.start()
-
-    # Receiver chạy ở main thread
-    received_ok = 0
-    print("\n[RECEIVER] Bắt đầu nhận ảnh...\n")
-
-    while True:
+    def run(self):
         try:
-            frame = receive_image(server_sock)
-            if frame is None:
-                break
-            received_ok += 1
-            print(f"[RECEIVER] ✓ Ảnh #{received_ok} decode xong: {frame.shape[1]}x{frame.shape[0]}")
+            # 1. Mở camera mặc định (index = 0)
+            cap = cv2.VideoCapture(0)
+            if not cap.isOpened():
+                self.error_occurred.emit("Không thể kết nối với Webcam!")
+                return
+            
+            # 2. Chụp 1 khung hình rồi tắt camera ngay
+            ret, frame = cap.read()
+            cap.release()
+
+            if not ret or frame is None:
+                self.error_occurred.emit("Chụp ảnh thất bại!")
+                return
+
+            # 3. Nén ảnh thành chuẩn JPEG để giảm dung lượng mạng
+            success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            if success:
+                # Chuyển thành dạng byte và phát tín hiệu ra ngoài
+                self.image_encoded.emit(buffer.tobytes())
+            else:
+                self.error_occurred.emit("Lỗi mã hóa ảnh!")
         except Exception as e:
-            print(f"[RECEIVER] Kết thúc hoặc lỗi: {e}")
-            break
+            self.error_occurred.emit(f"Lỗi Camera: {str(e)}")
 
-    server_sock.close()
-    t.join()
+class ImageHandler:
+    def __init__(self, main_window):
+        self.main = main_window
 
-    print(f"\n{'─' * 55}")
-    print(f"  KẾT QUẢ: Gửi {len(frames)} ảnh | Nhận thành công {received_ok} ảnh")
-    status = "✓ PASS" if received_ok == len(frames) else "✗ FAIL"
-    print(f"  {status} — Sticky packets đã được giải quyết bằng 4-byte Header")
-    print(f"{'─' * 55}\n")
+    def capture_and_send_image(self):
+        # Vô hiệu hóa nút tạm thời để tránh click liên tục
+        self.main.ui.btn_camera.setEnabled(False)
+        self.main.display_message("Hệ thống", "Đang mở camera chụp ảnh...")
+        
+        # Khởi chạy luồng camera
+        self.camera_thread = CameraThread()
+        self.camera_thread.image_encoded.connect(self.send_image_bytes)
+        self.camera_thread.error_occurred.connect(lambda err: self.main.display_message("Lỗi", err))
+        self.camera_thread.finished.connect(lambda: self.main.ui.btn_camera.setEnabled(True))
+        self.camera_thread.start()
 
+    def send_image_bytes(self, img_bytes):
+        try:
+            # Mã hóa ảnh sang Base64
+            b64_str = base64.b64encode(img_bytes).decode('utf-8')
+            content = f"[IMAGE_BASE64]{b64_str}"
 
-if __name__ == "__main__":
-    run_loopback_test()
+            # Đóng gói JSON tùy theo phòng chat
+            if self.main.current_chat_type == "chat_all":
+                msg_dict = {"type": "chat_all", "sender": self.main.nickname, "content": content}
+            elif self.main.current_chat_type == "chat_private":
+                msg_dict = {"type": "chat_private", "sender": self.main.nickname, "receiver": self.main.current_chat_target, "content": content}
+            elif self.main.current_chat_type == "chat_group":
+                msg_dict = {"type": "chat_group", "group_id": self.main.current_chat_target, "sender": self.main.nickname, "content": content}
+
+            if getattr(self.main, 'reply_to_data', None):
+                msg_dict["reply_to"] = self.main.reply_to_data
+
+            payload = json.dumps(msg_dict).encode('utf-8')
+            header = struct.pack("!I", len(payload))
+            
+            self.main.sock.sendall(header + payload)
+            print(f"[LOG] Đã gửi ảnh thành công dưới dạng Base64 (Dung lượng payload: {len(payload)} bytes)")
+            
+            # Hiển thị ảnh cho chính mình
+            buffer = np.frombuffer(img_bytes, dtype=np.uint8)
+            frame = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
+            self.display_image(frame, is_sender=True, sender="Tôi") 
+            
+        except Exception as e:
+            print("Lỗi gửi ảnh:", e)
+            self.main.display_message("Lỗi", "Không thể gửi ảnh!")
+
+    def select_and_send_image(self):
+        file_path, _ = QFileDialog.getOpenFileName(self.main, "Chọn ảnh", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
+        if not file_path:
+            return
+
+        try:
+            # Đọc ảnh (hỗ trợ đường dẫn có dấu tiếng Việt)
+            with open(file_path, "rb") as f:
+                bytes_array = bytearray(f.read())
+                
+            # Decode bằng OpenCV
+            numpyarray = np.asarray(bytes_array, dtype=np.uint8)
+            frame = cv2.imdecode(numpyarray, cv2.IMREAD_COLOR)
+
+            if frame is None:
+                self.main.display_message("Lỗi", "Định dạng ảnh không hợp lệ hoặc file bị hỏng.")
+                return
+
+            # Nén và resize ảnh nếu quá lớn để đảm bảo truyền mạng tốt
+            max_dim = 1280
+            h, w = frame.shape[:2]
+            if w > max_dim or h > max_dim:
+                scale = max_dim / max(w, h)
+                frame = cv2.resize(frame, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+
+            # Ép về JPEG
+            success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            if not success:
+                self.main.display_message("Lỗi", "Không thể xử lý ảnh.")
+                return
+
+            img_bytes = buffer.tobytes()
+            
+            # Gửi thông qua hàm có sẵn
+            self.send_image_bytes(img_bytes)
+        except Exception as e:
+            print("Lỗi chọn ảnh:", e)
+            self.main.display_message("Lỗi", "Có lỗi xảy ra khi đọc ảnh!")
+
+    def display_image(self, frame, is_sender=False, sender=None, is_sticker=False):
+        if is_sender:
+            sender = "Tôi"
+
+        current_time = datetime.now()
+        display_time = current_time.strftime("%H:%M")
+
+        # Tính toán Gom cụm
+        show_time_tag = False
+        if getattr(self.main, "last_msg_time", None) is None or (current_time - self.main.last_msg_time).total_seconds() > 1200:
+            show_time_tag = True
+            self.main.last_sender = None
+
+        show_name = (sender != "Tôi" and sender != getattr(self.main, "last_sender", None))
+
+        if sender == getattr(self.main, "last_sender", None) and not show_time_tag:
+            last_item = getattr(self.main, "last_item", None)
+            if last_item is not None:
+                prev_data = last_item.data(Qt.UserRole)
+                prev_data["show_time"] = False
+                last_item.setData(Qt.UserRole, prev_data)
+
+        # Xử lý ảnh
+        if len(frame.shape) == 3 and frame.shape[2] == 4:
+            rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGBA)
+            h, w, ch = rgb_image.shape
+            qt_image = QImage(rgb_image.data, w, h, ch * w, QImage.Format_RGBA8888)
+        else:
+            rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = rgb_image.shape
+            qt_image = QImage(rgb_image.data, w, h, ch * w, QImage.Format_RGB888)
+            
+        pixmap = QPixmap.fromImage(qt_image)
+        
+        original_pixmap = pixmap
+        if is_sticker:
+            if pixmap.width() > 120:
+                pixmap = pixmap.scaledToWidth(120, Qt.SmoothTransformation)
+        else:
+            if pixmap.width() > 250:
+                pixmap = pixmap.scaledToWidth(250, Qt.SmoothTransformation)
+
+        # Đóng gói dữ liệu ảnh
+        data = {
+            "type": "image",
+            "is_sticker": is_sticker,
+            "sender": sender,
+            "pixmap": pixmap,
+            "original_pixmap": original_pixmap,
+            "img_w": pixmap.width(),
+            "img_h": pixmap.height(),
+            "time": display_time,
+            "show_time": True,
+            "show_time_tag": show_time_tag,
+            "tag_text": current_time.strftime("%H:%M %d/%m/%Y"),
+            "show_name": show_name,
+            "chat_type": getattr(self.main, 'current_chat_type', 'chat_all'),
+            "avatar_pixmap": self.main.avatar_handler.get_sender_avatar_pixmap(sender)
+        }
+
+        item = QListWidgetItem(self.main.chat_list)
+        item.setData(Qt.UserRole, data)
+        self.main.chat_list.addItem(item)
+        
+        # Cập nhật trí nhớ và cuộn
+        self.main.last_sender = sender
+        self.main.last_msg_time = current_time
+        self.main.last_item = item
+        QTimer.singleShot(50, self.main.chat_list.scrollToBottom)

@@ -7,6 +7,15 @@
 | 2 | Trần Minh Quân | 352774521 | [quantran9739-png](https://github.com/quantran9739-png) |
 | 3 | Lê Hữu Tiến | 072206006554 | [LeHuuTien1006](https://github.com/LeHuuTien1006) |
 
+## 🎥 Video Demo Sản Phẩm
+Mời thầy xem video demo thực tế các tính năng của dự án tại đây:
+
+[![Xem Video Demo](https://img.shields.io/badge/YouTube-Video_Demo_Sản_Phẩm-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/2HWaKv1e8fQ)
+
+*(Click vào nút trên hoặc truy cập link: https://youtu.be/2HWaKv1e8fQ)*
+
+---
+
 ## 2. Công nghệ sử dụng
 * **Ngôn ngữ:** Python.
 * **Giao thức mạng:** TCP/IP (thư viện socket, struct).

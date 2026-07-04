@@ -1420,7 +1420,11 @@ class LoginWindow(QWidget):
         nickname = self.ui.lineEdit_inputnickname.text().strip()
 
         if not nickname:
-            self.ui.label_readytochat.setText("Vui lòng nhập biệt danh!")
+            if hasattr(self.ui, "lbl_error_msg"):
+                self.ui.lbl_error_msg.setText("Vui lòng nhập biệt danh!")
+                self.ui.label_readytochat.setText("")
+            else:
+                self.ui.label_readytochat.setText("Vui lòng nhập biệt danh!")
             self.timer.stop()
             return
             

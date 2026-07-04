@@ -1,161 +1,97 @@
-"""
-Task 1.1 - Tìm kiếm tin nhắn cục bộ (Message Search)
-Nhóm 12 - Lê Hữu Tiến
-Nhận QTextBrowser / list tin nhắn từ Quỳnh Anh, tìm kiếm theo từ khóa,
-highlight kết quả trả về.
-"""
+from PySide6.QtWidgets import QListWidgetItem, QLabel, QAbstractItemView
+from PySide6.QtCore import Qt, QSize
 
-import re
-from dataclasses import dataclass
-from typing import List, Optional
+class SearchHandler:
+    def __init__(self, main_window):
+        self.main = main_window
 
+    def show_search_panel(self):
+        """Mở panel tìm kiếm ở cột 4."""
+        if getattr(self.main, '_info_panel_visible', False) and self.main.ui.stacked_col4.currentIndex() == 1:
+            self.main.ui.col4_info.hide()
+            self.main._info_panel_visible = False
+        else:
+            self.main.ui.stacked_col4.setCurrentIndex(1) # Chuyển sang trang Search
+            self.main._reposition_col4_overlay()
+            self.main.ui.col4_info.show()
+            self.main.ui.col4_info.raise_()
+            self.main._info_panel_visible = True
+            self.main.txt_local_search.setFocus()
+            self.main.txt_local_search.selectAll()
 
-@dataclass
-class Message:
-    """Cấu trúc một tin nhắn trong chat."""
-    msg_id: int
-    sender: str
-    content: str
-    timestamp: str
-    room: str = "general"
+    def perform_local_search_ui(self):
+        keyword = self.main.txt_local_search.text().strip().lower()
+        self.main.list_local_search.clear()
+        
+        if not keyword:
+            return
+            
+        target = self.main.current_chat_target
+        if target not in self.main.chat_history_db:
+            return
+            
+        history = self.main.chat_history_db[target]
+        for sender, content in history:
+            # Bỏ qua tin nhắn hệ thống, ảnh và sticker
+            if sender == "Hệ thống" or content.startswith("[IMAGE_BASE64]") or content.startswith("[STICKER_BASE64]"):
+                continue
+                
+            idx = content.lower().find(keyword)
+            if idx != -1:
+                # Tạo snippet
+                start = max(0, idx - 30)
+                end = min(len(content), idx + len(keyword) + 30)
+                
+                snippet = content[start:end]
+                if start > 0: snippet = "..." + snippet
+                if end < len(content): snippet = snippet + "..."
+                
+                # Format highlight (đảm bảo giữ nguyên chữ gốc dù từ khóa search là chữ thường)
+                original_kw = content[idx:idx+len(keyword)]
+                highlighted_snippet = snippet.replace(original_kw, f"<b style='color:#f1c40f'>{original_kw}</b>")
+                
+                html_text = f"""
+                <div style='color: white;'>
+                    <div style='font-weight: bold; color: #3498db; margin-bottom: 3px;'>{sender}</div>
+                    <div style='color: #B0B8C1; font-size: 13px;'>{highlighted_snippet}</div>
+                </div>
+                """
+                
+                item = QListWidgetItem(self.main.list_local_search)
+                item.setData(Qt.UserRole, {"sender": sender, "content": content})
+                item.setSizeHint(QSize(300, 70))
+                
+                lbl = QLabel(html_text)
+                lbl.setWordWrap(True)
+                self.main.list_local_search.setItemWidget(item, lbl)
 
-
-@dataclass
-class SearchResult:
-    """Kết quả tìm kiếm một tin nhắn."""
-    message: Message
-    highlighted_content: str      # Nội dung với từ khóa được đánh dấu
-    match_positions: List[tuple]  # [(start, end), ...] vị trí match trong content
-
-
-# ─────────────────────────────────────────────────────────────
-#  CÁC HÀM LÕI
-# ─────────────────────────────────────────────────────────────
-
-def search_messages(
-    messages: List[Message],
-    keyword: str,
-    case_sensitive: bool = False
-) -> List[SearchResult]:
-    """
-    Duyệt mảng tin nhắn và lọc theo từ khóa.
-
-    Args:
-        messages      : Danh sách Message nhận từ Quỳnh Anh
-        keyword       : Từ khóa cần tìm
-        case_sensitive: Phân biệt hoa/thường (mặc định không)
-
-    Returns:
-        Danh sách SearchResult có đính kèm vị trí match và nội dung highlighted
-    """
-    if not keyword.strip():
-        return []
-
-    results: List[SearchResult] = []
-    flags = 0 if case_sensitive else re.IGNORECASE
-    pattern = re.compile(re.escape(keyword), flags)
-
-    for msg in messages:
-        matches = list(pattern.finditer(msg.content))
-        if not matches:
-            continue
-
-        positions = [(m.start(), m.end()) for m in matches]
-        highlighted = _highlight_text(msg.content, positions)
-        results.append(SearchResult(
-            message=msg,
-            highlighted_content=highlighted,
-            match_positions=positions
-        ))
-
-    return results
-
-
-def _highlight_text(text: str, positions: List[tuple]) -> str:
-    """
-    Chèn thẻ [HIGHLIGHT]...[/HIGHLIGHT] quanh các đoạn match.
-    Quỳnh Anh có thể parse cặp thẻ này để tô màu trên QTextBrowser.
-    """
-    result = []
-    prev_end = 0
-    for start, end in positions:
-        result.append(text[prev_end:start])
-        result.append(f"[HIGHLIGHT]{text[start:end]}[/HIGHLIGHT]")
-        prev_end = end
-    result.append(text[prev_end:])
-    return "".join(result)
-
-
-def highlight_for_qt(text: str, positions: List[tuple], color: str = "yellow") -> str:
-    """
-    Sinh HTML để dùng trực tiếp với QTextBrowser.setHtml().
-    Quỳnh Anh gọi hàm này, truyền kết quả vào widget.
-    """
-    result = []
-    prev_end = 0
-    for start, end in positions:
-        result.append(text[prev_end:start])
-        result.append(
-            f'<span style="background-color:{color}; font-weight:bold;">'
-            f'{text[start:end]}</span>'
-        )
-        prev_end = end
-    result.append(text[prev_end:])
-    return "".join(result)
-
-
-def print_search_results(results: List[SearchResult], keyword: str) -> None:
-    """In kết quả tìm kiếm ra console (dùng khi test)."""
-    if not results:
-        print(f'[SEARCH] Không tìm thấy kết quả nào cho từ khóa: "{keyword}"')
-        return
-
-    print(f'\n[SEARCH] Tìm thấy {len(results)} tin nhắn chứa "{keyword}":')
-    print("─" * 60)
-    for i, r in enumerate(results, 1):
-        msg = r.message
-        print(f"  [{i}] ID={msg.msg_id} | {msg.sender} | {msg.timestamp}")
-        print(f"       Phòng: {msg.room}")
-        print(f"       Nội dung: {r.highlighted_content}")
-        print(f"       Vị trí match: {r.match_positions}")
-        print()
-
-
-# ─────────────────────────────────────────────────────────────
-#  TEST THỦ CÔNG
-# ─────────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    # Dữ liệu mẫu (thực tế nhận từ Quỳnh Anh qua list/QTextBrowser)
-    sample_messages = [
-        Message(1,  "Quân",      "Mọi người họp lúc 9h nhé",                     "09:00", "general"),
-        Message(2,  "QuỳnhAnh",  "OK anh Quân, em sẽ họp đúng giờ",              "09:01", "general"),
-        Message(3,  "Tiến",      "Anh Quân ơi server bị lỗi khi gửi ảnh",        "09:05", "general"),
-        Message(4,  "Quân",      "Tiến kiểm tra lại phần header nhị phân nhé",   "09:06", "general"),
-        Message(5,  "QuỳnhAnh",  "Em đang fix bug UI của nhóm chat group",       "09:10", "group-12"),
-        Message(6,  "Tiến",      "Header đã fix xong, test gửi ảnh lại đi Quân", "09:15", "group-12"),
-        Message(7,  "Quân",      "Good job Tiến! Merge vào main đi",             "09:20", "general"),
-        Message(8,  "QuỳnhAnh",  "Anh Quân review PR của em với nhé",            "09:25", "general"),
-    ]
-
-    # Test 1: Tìm tên "Quân"
-    results = search_messages(sample_messages, "Quân")
-    print_search_results(results, "Quân")
-
-    # Test 2: Tìm từ "header" không phân biệt hoa thường
-    results = search_messages(sample_messages, "header")
-    print_search_results(results, "header")
-
-    # Test 3: Sinh HTML highlight để Quỳnh Anh dùng cho QTextBrowser
-    print("[QT HTML] Ví dụ HTML highlight cho QTextBrowser:")
-    test_msg = sample_messages[2]
-    html = highlight_for_qt(
-        test_msg.content,
-        [(test_msg.content.lower().find("server"), test_msg.content.lower().find("server") + 6)],
-        color="#FFEB3B"
-    )
-    print(f"  {html}\n")
-
-    # Test 4: Từ khóa không tồn tại
-    results = search_messages(sample_messages, "xyz123")
-    print_search_results(results, "xyz123")
+    def navigate_to_message(self, item):
+        data = item.data(Qt.UserRole)
+        if not data: return
+        
+        target_sender = data.get("sender")
+        target_content = data.get("content")
+        
+        # Tìm tin nhắn trong self.main.chat_list
+        for i in range(self.main.chat_list.count()):
+            chat_item = self.main.chat_list.item(i)
+            chat_data = chat_item.data(Qt.UserRole)
+            if not chat_data or not isinstance(chat_data, dict):
+                continue
+            
+            # Match sender and content
+            s = chat_data.get("sender", "")
+            match_sender = (
+                s == target_sender
+                or (s == "Tôi" and target_sender == self.main.nickname)
+                or (s == self.main.nickname and target_sender == "Tôi")
+            )
+            if match_sender and chat_data.get("content") == target_content:
+                self.main.chat_list.scrollToItem(chat_item, QAbstractItemView.PositionAtCenter)
+                self.main.chat_list.setCurrentItem(chat_item)
+                
+                # Có thể thêm hiệu ứng nháy nhẹ ở đây nếu muốn
+                # Đóng panel
+                self.main.ui.col4_info.hide()
+                self.main._info_panel_visible = False
+                break

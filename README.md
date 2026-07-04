@@ -8,7 +8,7 @@
 | 3 | Lê Hữu Tiến | 072206006554 | [LeHuuTien1006](https://github.com/LeHuuTien1006) |
 
 ## 🎥 Video Demo Sản Phẩm
-Mời thầy và các bạn xem video demo thực tế các tính năng của dự án tại đây:
+Mời thầy xem video demo thực tế các tính năng của dự án tại đây:
 
 [![Xem Video Demo](https://img.shields.io/badge/YouTube-Video_Demo_Sản_Phẩm-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/2HWaKv1e8fQ)
 
